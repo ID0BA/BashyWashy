@@ -15,4 +15,26 @@ jobs:
 
     - name: Run Bash script tests
       run: |
-        chmod +x ./HMM.sh && ./HMM.sh
+       chmod +x ./HMM.sh && ./HMM.sh
+        ./script.sh --test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Copy files to VM
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "."
+        target: "/root"
+
+    - name: Run script on remote server
+      run: |
+        ssh -o StrictHostKeyChecking=no user@remote-server 'bash home/ec2-user/HMM.sh'
